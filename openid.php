@@ -349,7 +349,7 @@ class LightOpenID
             $this->headers = $this->parse_header_array($http_response_header, $update_claimed_id);
         }
 
-        return $data;
+        return file_get_contents($url, false, $context);
     }
 
     protected function request($url, $method='GET', $params=array(), $update_claimed_id=false)
@@ -537,7 +537,7 @@ class LightOpenID
 
             throw new ErrorException("No OpenID Server found at $url", 404);
         }
-        throw new ErrorException('Endless redirection!', 500);
+        throw new ErrorException('Endless redirection!');
     }
 
     protected function sregParams()
@@ -731,7 +731,11 @@ class LightOpenID
             # In such case, validation would fail, since we'd send different data than OP
             # wants to verify. stripslashes() should solve that problem, but we can't
             # use it when magic_quotes is off.
-            $value = $this->data['openid_' . str_replace('.','_',$item)];
+            $key = "openid_" . str_replace("." , "_" , $item ) ;
+            $value = "" ;
+            if ( array_key_exists( $key , $this->data ) ) { // Quando a chave n<E3>o existe gera um notice, verifico antes.
+                $value = $this->data{ $key } ;
+            }
             $params['openid.' . $item] = function_exists('get_magic_quotes_gpc') && get_magic_quotes_gpc() ? stripslashes($value) : $value;
 
         }
